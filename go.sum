@@ -1,4 +1,4 @@
-github.com/qiniu/x v1.12.10 h1:bPjBnlJKBP/koUFCAXUMb9Bcr2uXOWuU2vzepYDYwLk=
-github.com/qiniu/x v1.12.10/go.mod h1:03Ni9tj+N2h2aKnAz+6N0Xfl8FwMEDRC2PAlxekASDs=
+github.com/qiniu/x v1.12.11 h1:3Z+SmpzKSrKfeh5CvJI0+yvo3t3oQ7bdRpQ3SGErMLc=
+github.com/qiniu/x v1.12.11/go.mod h1:03Ni9tj+N2h2aKnAz+6N0Xfl8FwMEDRC2PAlxekASDs=
 golang.org/x/sync v0.3.0 h1:ftCYgMx6zT/asHUrPw8BLLscYtGznsLAnjq5RH9P66E=
 golang.org/x/sync v0.3.0/go.mod h1:FU7BRWz2tNW+3quACPkgCx/L+uEAv1htQ0V83Z9Rj+Y=
