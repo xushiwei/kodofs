@@ -1,10 +1,9 @@
-package kodoutil
+package kodo
 
 import (
 	"context"
 	"io"
 	"io/fs"
-	"path"
 	"strings"
 	"time"
 
@@ -32,34 +31,6 @@ func (mac *Credentials) Upload(ctx context.Context, bucket, name string, r io.Re
 	return formUploader.Put(ctx, &ret, upToken, name, r, fsize, nil)
 }
 
-type WalkFunc = func(path string, info fs.FileInfo, err error) error
-
-func (mac *Credentials) Walk(ctx context.Context, bucket, dir string, fn WalkFunc) (err error) {
-	m := kodo.NewBucketManager((*auth.Credentials)(mac), nil)
-	dir = strings.TrimPrefix(dir, "/")
-	prefix := kodo.ListInputOptionsPrefix(dir)
-	limit := kodo.ListInputOptionsLimit(1000)
-	marker := ""
-	for {
-		ret, hasNext, e := m.ListFilesWithContext(ctx, bucket, prefix, limit, kodo.ListInputOptionsMarker(marker))
-		if e != nil {
-			return e
-		}
-		for _, item := range ret.Items {
-			key := item.Key
-			if !strings.HasPrefix(key, "/") {
-				key = "/" + key
-			}
-			fn(key, NewFileInfo(key, item.Fsize), nil)
-		}
-		if !hasNext {
-			break
-		}
-		marker = ret.Marker
-	}
-	return
-}
-
 // -----------------------------------------------------------------------------------------
 
 // FileInfo describes a single file in an file system.
@@ -67,7 +38,7 @@ func (mac *Credentials) Walk(ctx context.Context, bucket, dir string, fn WalkFun
 type FileInfo struct {
 	name  string
 	size  int64
-	Mtime time.Time // default use zero time
+	Mtime time.Time
 }
 
 func NewFileInfo(name string, size int64) *FileInfo {
@@ -75,7 +46,7 @@ func NewFileInfo(name string, size int64) *FileInfo {
 }
 
 func (p *FileInfo) Name() string {
-	return path.Base(p.name)
+	return p.name
 }
 
 func (p *FileInfo) Size() int64 {
@@ -103,6 +74,50 @@ func (p *FileInfo) Info() (fs.FileInfo, error) {
 }
 
 func (p *FileInfo) Sys() interface{} {
+	return nil
+}
+
+// -----------------------------------------------------------------------------------------
+
+// DirInfo describes a single directory in an file system.
+// It implements fs.FileInfo and io.Closer and Stat().
+type DirInfo struct {
+	name string
+}
+
+func NewDirInfo(name string) *DirInfo {
+	return &DirInfo{name}
+}
+
+func (p *DirInfo) Name() string {
+	return p.name
+}
+
+func (p *DirInfo) Size() int64 {
+	return 0
+}
+
+func (p *DirInfo) Mode() fs.FileMode {
+	return fs.ModeIrregular | fs.ModeDir
+}
+
+func (p *DirInfo) ModTime() time.Time {
+	return time.Now()
+}
+
+func (p *DirInfo) IsDir() bool {
+	return true
+}
+
+func (p *DirInfo) Sys() interface{} {
+	return nil
+}
+
+func (p *DirInfo) Stat() (fs.FileInfo, error) {
+	return p, nil
+}
+
+func (p *DirInfo) Close() error {
 	return nil
 }
 
