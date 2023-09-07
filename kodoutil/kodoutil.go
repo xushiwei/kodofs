@@ -14,32 +14,28 @@ import (
 
 // -----------------------------------------------------------------------------------------
 
-type Credentials = auth.Credentials
+type Credentials auth.Credentials
 
 func NewCredentials(accessKey, secretKey string) *Credentials {
-	return auth.New(accessKey, secretKey)
+	return (*Credentials)(auth.New(accessKey, secretKey))
 }
 
-// -----------------------------------------------------------------------------------------
-
-func Upload(ctx context.Context, mac *Credentials, bucket, name string, r io.Reader, fi fs.FileInfo) (err error) {
+func (mac *Credentials) Upload(ctx context.Context, bucket, name string, r io.Reader, fi fs.FileInfo) (err error) {
 	name = strings.TrimPrefix(name, "/")
 	putPolicy := kodo.PutPolicy{
 		Scope: bucket + ":" + name,
 	}
-	upToken := putPolicy.UploadToken(mac)
+	upToken := putPolicy.UploadToken((*auth.Credentials)(mac))
 
 	var ret kodo.PutRet
 	formUploader := kodo.NewFormUploaderEx(nil, nil)
 	return formUploader.Put(ctx, &ret, upToken, name, r, fi.Size(), nil)
 }
 
-// -----------------------------------------------------------------------------------------
-
 type WalkFunc = func(path string, info fs.FileInfo, err error) error
 
-func Walk(ctx context.Context, mac *Credentials, bucket, dir string, fn WalkFunc) (err error) {
-	m := kodo.NewBucketManager(mac, nil)
+func (mac *Credentials) Walk(ctx context.Context, bucket, dir string, fn WalkFunc) (err error) {
+	m := kodo.NewBucketManager((*auth.Credentials)(mac), nil)
 	if !strings.HasSuffix(dir, "/") {
 		dir += "/"
 	}
