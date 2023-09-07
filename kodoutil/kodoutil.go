@@ -36,13 +36,12 @@ type WalkFunc = func(path string, info fs.FileInfo, err error) error
 
 func (mac *Credentials) Walk(ctx context.Context, bucket, dir string, fn WalkFunc) (err error) {
 	m := kodo.NewBucketManager((*auth.Credentials)(mac), nil)
-	if !strings.HasSuffix(dir, "/") {
-		dir += "/"
-	}
-	marker := ""
+	dir = strings.TrimPrefix(dir, "/")
 	prefix := kodo.ListInputOptionsPrefix(dir)
+	limit := kodo.ListInputOptionsLimit(1000)
+	marker := ""
 	for {
-		ret, hasNext, e := m.ListFilesWithContext(ctx, bucket, prefix, kodo.ListInputOptionsMarker(marker))
+		ret, hasNext, e := m.ListFilesWithContext(ctx, bucket, prefix, limit, kodo.ListInputOptionsMarker(marker))
 		if e != nil {
 			return e
 		}
@@ -51,7 +50,7 @@ func (mac *Credentials) Walk(ctx context.Context, bucket, dir string, fn WalkFun
 			if !strings.HasPrefix(key, "/") {
 				key = "/" + key
 			}
-			fn(key, &dataFileInfo{key, item.Fsize}, nil)
+			fn(key, NewFileInfo(key, item.Fsize), nil)
 		}
 		if !hasNext {
 			break
@@ -63,32 +62,47 @@ func (mac *Credentials) Walk(ctx context.Context, bucket, dir string, fn WalkFun
 
 // -----------------------------------------------------------------------------------------
 
-type dataFileInfo struct {
-	name string
-	size int64
+// FileInfo describes a single file in an file system.
+// It implements fs.FileInfo and fs.DirEntry.
+type FileInfo struct {
+	name  string
+	size  int64
+	Mtime time.Time // default use zero time
 }
 
-func (p *dataFileInfo) Name() string {
+func NewFileInfo(name string, size int64) *FileInfo {
+	return &FileInfo{name: name, size: size}
+}
+
+func (p *FileInfo) Name() string {
 	return path.Base(p.name)
 }
 
-func (p *dataFileInfo) Size() int64 {
+func (p *FileInfo) Size() int64 {
 	return p.size
 }
 
-func (p *dataFileInfo) Mode() fs.FileMode {
-	return 0
+func (p *FileInfo) Mode() fs.FileMode {
+	return fs.ModeIrregular
 }
 
-func (p *dataFileInfo) ModTime() time.Time {
-	return time.Time{} // zero time
+func (p *FileInfo) Type() fs.FileMode {
+	return fs.ModeIrregular
 }
 
-func (p *dataFileInfo) IsDir() bool {
+func (p *FileInfo) ModTime() time.Time {
+	return p.Mtime
+}
+
+func (p *FileInfo) IsDir() bool {
 	return false
 }
 
-func (p *dataFileInfo) Sys() interface{} {
+func (p *FileInfo) Info() (fs.FileInfo, error) {
+	return p, nil
+}
+
+func (p *FileInfo) Sys() interface{} {
 	return nil
 }
 
