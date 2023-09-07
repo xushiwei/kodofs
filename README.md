@@ -1,4 +1,4 @@
-kodofs - http.FileSystem base on kodo (qiniu cloud object storage)
+kodofs - http.FileSystem for kodo (qiniu cloud object storage)
 ======
 
 [![Build Status](https://github.com/xushiwei/kodofs/actions/workflows/go.yml/badge.svg)](https://github.com/xushiwei/kodofs/actions/workflows/go.yml)
