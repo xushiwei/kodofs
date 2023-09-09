@@ -83,7 +83,7 @@ func (b *Bucket) Open(name string) (f http.File, err error) {
 		return nil, fs.ErrNotExist
 	}
 	fname := path.Base(name)
-	return cached.Dir(kodo.NewDirInfo(fname), fis), nil
+	return cached.Dir(xfs.NewDirInfo(fname), fis), nil
 }
 
 func isIndexPage(name string) bool {

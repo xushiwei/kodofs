@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	xfs "github.com/qiniu/x/http/fs"
 	"github.com/xushiwei/kodofs/internal/kodo"
 	"github.com/xushiwei/kodofs/internal/kodo/auth"
 )
@@ -75,7 +76,7 @@ func (b *Bucket) WalkContext(ctx context.Context, dir string, fn WalkFunc) (err 
 		for _, item := range ret.Items {
 			key := item.Key
 			name := key[len(dir):]
-			fn("/"+key, NewFileInfo(name, item.Fsize), nil)
+			fn("/"+key, xfs.NewFileInfo(name, item.Fsize), nil)
 		}
 		if !hasNext {
 			break
@@ -113,11 +114,13 @@ func (b *Bucket) ReaddirContext(ctx context.Context, dir string) (fis []fs.FileI
 		for _, item := range ret.Items {
 			key := item.Key
 			name := key[len(dir):]
-			fis = append(fis, &FileInfo{name, item.Fsize, fromPutTime(item.PutTime)})
+			fi := xfs.NewFileInfo(name, item.Fsize)
+			fi.Mtime = fromPutTime(item.PutTime)
+			fis = append(fis, fi)
 		}
 		for _, key := range ret.CommonPrefixes {
 			name := key[len(dir) : len(key)-1]
-			fis = append(fis, &DirInfo{name})
+			fis = append(fis, xfs.NewDirInfo(name))
 		}
 		if !hasNext {
 			break
