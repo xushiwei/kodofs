@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	xfs "github.com/qiniu/x/http/fs"
-	"github.com/qiniu/x/http/fs/cached"
 	"github.com/xushiwei/kodofs/kodo"
 )
 
@@ -83,7 +82,7 @@ func (b *Bucket) Open(name string) (f http.File, err error) {
 		return nil, fs.ErrNotExist
 	}
 	fname := path.Base(name)
-	return cached.Dir(xfs.NewDirInfo(fname), fis), nil
+	return xfs.Dir(xfs.NewDirInfo(fname), fis), nil
 }
 
 func isIndexPage(name string) bool {
