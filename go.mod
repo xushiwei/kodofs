@@ -4,5 +4,5 @@ go 1.18
 
 require (
 	github.com/qiniu/x v1.13.19
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.14.0
 )
